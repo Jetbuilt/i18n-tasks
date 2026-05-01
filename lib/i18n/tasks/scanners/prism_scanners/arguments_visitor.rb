@@ -39,6 +39,18 @@ module I18n::Tasks::Scanners::PrismScanners
       node.content
     end
 
+    def visit_interpolated_string_node(_node)
+      nil
+    end
+
+    def visit_interpolated_symbol_node(_node)
+      nil
+    end
+
+    def visit_interpolated_x_string_node(_node)
+      nil
+    end
+
     def visit_array_node(node)
       node.child_nodes.map { |child| visit(child) }
     end
