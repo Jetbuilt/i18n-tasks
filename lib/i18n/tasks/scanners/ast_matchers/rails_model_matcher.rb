@@ -20,6 +20,8 @@ module I18n::Tasks::Scanners::AstMatchers
 
       value = children[2]
 
+      return unless value && %i[str sym].include?(value.type)
+
       model_name = underscore(receiver.to_a.last)
       attribute = extract_string(value)
       # Convert dots to slashes to match Rails' human_attribute_name behavior
