@@ -77,9 +77,9 @@ module I18n::Tasks
       # @param [String] locale
       # @return [Array<String>] paths to files that are not normalized
       def non_normalized_paths(locale)
-        router.route(locale, get(locale))
-          .reject { |path, tree_slice| normalized?(path, tree_slice) }
-          .map(&:first)
+        Array(config[:read]).flat_map do |pattern|
+          Dir.glob(format(pattern, locale: locale))
+        end.select { |path| File.file?(path) }.reject { |path| normalized?(path, locale) }
       end
 
       def write(forest)
@@ -180,6 +180,17 @@ module I18n::Tasks
             s.leaves { |x| x.data.update(path: path, locale: locale) }
           end
         end.reduce(Tree::Siblings[locale => {}], :merge!)
+      end
+
+      def normalized?(path, locale)
+        content = read_file(path)
+        data = adapter_parse(content, self.class.adapter_name_for_path(path))
+        return true if data.nil?
+        return true unless data.key?(locale)
+        tree = Data::Tree::Siblings.from_nested_hash(data)
+        content == adapter_dump(tree.to_hash(true), self.class.adapter_name_for_path(path))
+      rescue StandardError
+        false
       end
 
       def filter_nil_keys!(path, data, suffix = [])
